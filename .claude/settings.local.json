@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(gh auth:*)",
+      "Bash(bash start_nile_be.sh)",
+      "Bash(uv run:*)",
+      "Bash(uv --version)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
