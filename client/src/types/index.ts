@@ -1,4 +1,4 @@
-// Type definitions for Nile
+// Type definitions for E-Store Demo
 
 export interface User {
   id: number;

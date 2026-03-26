@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start Nile Backend (FastAPI + Uvicorn)
+# Start E-Store Demo Backend (FastAPI + Uvicorn)
 # Runs on http://localhost:8000 with hot reload
 
 cd "$(dirname "$0")/server"

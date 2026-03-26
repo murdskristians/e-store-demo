@@ -1,4 +1,4 @@
-"""Main FastAPI application for Nile."""
+"""Main FastAPI application for E-Store Demo."""
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import API_PREFIX, CORS_ORIGINS
-from .database import init_db, get_db
+from .database import init_db, get_db, async_session
 from .routers import (
     auth_router,
     products_router,
@@ -27,13 +27,26 @@ async def lifespan(app: FastAPI):
     # Startup
     await init_db()
     print("Database initialized")
+
+    # Auto-seed if database is empty (needed for Railway ephemeral storage)
+    from sqlalchemy import select, func
+    from .models import Product
+    async with async_session() as db:
+        result = await db.execute(select(func.count()).select_from(Product))
+        count = result.scalar()
+        if count == 0:
+            print("No products found, seeding database...")
+            from seed_data import seed_products
+            await seed_products()
+            print("Database seeded")
+
     yield
     # Shutdown
     print("Application shutting down")
 
 
 app = FastAPI(
-    title="Nile API",
+    title="E-Store Demo API",
     description="Adaptive Shopping with Agent Expert",
     version="1.0.0",
     lifespan=lifespan
@@ -60,14 +73,14 @@ app.include_router(home_router, prefix=API_PREFIX)
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "nile-api"}
+    return {"status": "healthy", "service": "e-store-demo-api"}
 
 
 @app.get("/")
 async def root():
     """Root endpoint."""
     return {
-        "message": "Welcome to Nile API",
+        "message": "Welcome to E-Store Demo API",
         "docs": "/docs",
         "health": "/health"
     }

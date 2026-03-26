@@ -5,7 +5,7 @@ import logging
 from typing import Dict, Optional
 from fastapi import WebSocket
 
-logger = logging.getLogger("nile.websocket")
+logger = logging.getLogger("e-store-demo.websocket")
 
 
 class HomePageWebSocketManager:

@@ -1,4 +1,4 @@
-"""Configuration settings for Nile server."""
+"""Configuration settings for E-Store Demo server."""
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -12,11 +12,17 @@ DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
 # Database
-DATABASE_URL = f"sqlite+aiosqlite:///{DATA_DIR}/nile.db"
+DATABASE_URL = f"sqlite+aiosqlite:///{DATA_DIR}/e-store-demo.db"
 
 # API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 # Server settings
 API_PREFIX = "/api"
-CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173", "https://5173-*.e2b.app"]
+CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://5173-*.e2b.app",
+    os.getenv("FRONTEND_URL", ""),  # Set this to your Netlify URL
+]
+CORS_ORIGINS = [url for url in CORS_ORIGINS if url]  # Remove empty strings

@@ -1,4 +1,4 @@
-// API service for Nile
+// API service for E-Store Demo
 import axios, { type AxiosInstance } from 'axios';
 import type {
   User,

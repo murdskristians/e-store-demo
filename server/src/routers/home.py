@@ -44,7 +44,7 @@ async def generate_generic_home(db: AsyncSession) -> HomePageResponse:
     sections = [
         HomeSection(
             component_type="generic-slogan",
-            slogan_text="Welcome to Nile - Where Every Purchase Flows Smoothly",
+            slogan_text="Welcome to E-Store Demo - Adaptive Shopping Experience",
             subtitle="Discover premium products curated just for you"
         ),
         HomeSection(

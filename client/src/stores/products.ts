@@ -69,10 +69,17 @@ export const useProductsStore = defineStore('products', () => {
       loadStartTime.value = Date.now();
       loadDuration.value = null;
 
-      // Build WebSocket URL - handle both dev proxy and direct
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}/ws/home/${userId}`;
+      // Build WebSocket URL - use VITE_API_URL if set (production), else dev proxy
+      const apiUrl = import.meta.env.VITE_API_URL;
+      let wsUrl: string;
+      if (apiUrl) {
+        const url = new URL(apiUrl);
+        const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${wsProtocol}//${url.host}/ws/home/${userId}`;
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}/ws/home/${userId}`;
+      }
 
       console.log('[HomeStream] Connecting to:', wsUrl);
 

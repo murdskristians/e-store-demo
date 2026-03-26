@@ -34,7 +34,7 @@ from ..schemas import (
 )
 
 # Configure logger
-logger = logging.getLogger("nile.agent_expert")
+logger = logging.getLogger("e-store-demo.agent_expert")
 logger.setLevel(logging.DEBUG)
 
 # Add console handler if not already present
