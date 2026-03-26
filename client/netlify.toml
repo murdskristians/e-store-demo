@@ -2,6 +2,19 @@
   command = "npm install && npm run build"
   publish = "dist"
 
+# Proxy API and WebSocket requests to Railway backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://e-store-demo-production.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/ws/*"
+  to = "https://e-store-demo-production.up.railway.app/ws/:splat"
+  status = 200
+  force = true
+
 # SPA redirect - all routes serve index.html
 [[redirects]]
   from = "/*"

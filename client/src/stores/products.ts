@@ -118,7 +118,7 @@ export const useProductsStore = defineStore('products', () => {
             streaming.value = false;
             loading.value = false;
             ws?.close();
-            reject(new Error(error.value));
+            reject(new Error(error.value ?? undefined));
           } else if (message.type === 'ping') {
             // Keep-alive, ignore
           }

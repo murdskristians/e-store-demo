@@ -6,7 +6,25 @@
       "Bash(bash start_nile_be.sh)",
       "Bash(uv run:*)",
       "Bash(uv --version)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep -r localhost /c/Users/murds/OneDrive/Desktop/e-store-demo --include=*.ts --include=*.tsx --include=*.vue --include=*.js --include=*.py)",
+      "Bash(find /c/Users/murds/OneDrive/Desktop/e-store-demo -maxdepth 2 -type f \\\\\\(-name Dockerfile -o -name docker-compose.yml -o -name .dockerignore -o -name *.env* -o -name tsconfig.json -o -name *.config.* \\\\\\))",
+      "Bash(railway --version)",
+      "Bash(netlify --version)",
+      "Bash(railway whoami:*)",
+      "Bash(netlify status:*)",
+      "Bash(railway project:*)",
+      "Bash(railway init:*)",
+      "Bash(railway variables:*)",
+      "Bash(railway service:*)",
+      "Bash(railway up:*)",
+      "Bash(railway logs:*)",
+      "Bash(railway domain:*)",
+      "Bash(VITE_API_URL=https://e-store-demo-production.up.railway.app npm run build)",
+      "Bash(netlify deploy:*)",
+      "Bash(curl -s -H \"X-User-Id: 1\" https://e-store-demo-production.up.railway.app/api/cart)",
+      "Bash(curl -s -X POST -H \"Content-Type: application/json\" -H \"X-User-Id: 1\" -d '{\"\"product_id\"\":1,\"\"quantity\"\":1}' https://e-store-demo-production.up.railway.app/api/cart/add)",
+      "Bash(curl -s -X POST -H \"Content-Type: application/json\" -H \"X-User-Id: 1\" https://e-store-demo-production.up.railway.app/api/orders/checkout)"
     ]
   }
 }
