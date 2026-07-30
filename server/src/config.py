@@ -17,6 +17,13 @@ DATABASE_URL = f"sqlite+aiosqlite:///{DATA_DIR}/e-store-demo.db"
 # API Keys
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
+# Agent-generated home page. The Claude Code CLI spawned by claude-agent-sdk
+# peaks at ~600MB, so on a 512MB instance it gets OOM-killed and takes the whole
+# process down. Off by default; enable only on a >=2GB instance.
+ENABLE_AGENT_HOME = os.getenv("ENABLE_AGENT_HOME", "false").strip().lower() in (
+    "1", "true", "yes", "on"
+)
+
 # Server settings
 API_PREFIX = "/api"
 CORS_ORIGINS = [

@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import API_PREFIX, CORS_ORIGINS
+from .config import API_PREFIX, CORS_ORIGINS, ENABLE_AGENT_HOME
 from .database import init_db, get_db, async_session
 from .routers import (
     auth_router,
@@ -106,6 +106,16 @@ async def websocket_home_stream(websocket: WebSocket, user_id: int):
     from .database import async_session
 
     await home_ws_manager.connect(user_id, websocket)
+
+    # Refuse before spawning the agent - see ENABLE_AGENT_HOME in config.py.
+    # Clients fall back to GET /api/home, which needs no agent.
+    if not ENABLE_AGENT_HOME:
+        await home_ws_manager.stream_error(
+            user_id,
+            "Agent home page is disabled on this instance (ENABLE_AGENT_HOME=false)"
+        )
+        home_ws_manager.disconnect(user_id)
+        return
 
     try:
         # Wait for client to send "start" message

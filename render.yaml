@@ -17,3 +17,7 @@ services:
         value: https://e-store-demo-e1d0348a.netlify.app
       - key: PYTHONUNBUFFERED
         value: "1"
+      # Agent home page needs ~600MB; this plan gives 512MB. Set to "true" only
+      # after moving to a >=2GB instance, and flip VITE_ENABLE_AGENT_HOME too.
+      - key: ENABLE_AGENT_HOME
+        value: "false"

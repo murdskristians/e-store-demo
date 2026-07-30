@@ -7,6 +7,9 @@
 # proxy WebSocket upgrades, so the /ws/* path must not be relative.
 [build.environment]
   VITE_API_URL = "https://e-store-demo-api.onrender.com"
+  # Agent home page is off: it needs ~600MB and the backend runs on a 512MB
+  # instance. Set to "true" together with ENABLE_AGENT_HOME on a >=2GB backend.
+  VITE_ENABLE_AGENT_HOME = "false"
 
 # Fallback for any relative /api call that slips through
 [[redirects]]

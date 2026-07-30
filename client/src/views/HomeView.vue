@@ -89,8 +89,12 @@ onMounted(async () => {
   ]);
 
   // Use WebSocket streaming for home page - sections appear progressively!
+  // Disabled unless VITE_ENABLE_AGENT_HOME=true: the Claude Code CLI the agent
+  // spawns peaks at ~600MB, which OOM-kills a 512MB instance and takes the whole
+  // API down with it. Turn on together with a >=2GB backend instance.
+  const agentHomeEnabled = import.meta.env.VITE_ENABLE_AGENT_HOME === 'true';
   const userId = api.getUserId();
-  if (userId) {
+  if (userId && agentHomeEnabled) {
     try {
       await productsStore.fetchHomePageStreaming(userId);
     } catch (e) {
@@ -99,7 +103,7 @@ onMounted(async () => {
       await productsStore.fetchHomePage();
     }
   } else {
-    // No user ID - use HTTP fallback
+    // Agent disabled or no user ID - generic home page over HTTP
     await productsStore.fetchHomePage();
   }
 
