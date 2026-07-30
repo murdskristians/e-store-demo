@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: e-store-demo-api
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Set in the Render dashboard - never committed
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://e-store-demo-e1d0348a.netlify.app
+      - key: PYTHONUNBUFFERED
+        value: "1"

@@ -19,3 +19,4 @@ app_review/
 app_docs/
 specs/
 .vscode/settings.json
+.netlify/
