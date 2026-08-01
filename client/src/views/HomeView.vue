@@ -78,7 +78,12 @@ async function handleAddToCart(productId: number) {
   }
 }
 
-onMounted(async () => {
+// True while the API client is retrying through a cold start, so the spinner
+// can explain the wait instead of the page looking broken.
+const serverWaking = ref<boolean>(false);
+let stopWakingWatch: (() => void) | null = null;
+
+async function loadHomePage() {
   // Start timer before fetching
   startTimer();
 
@@ -114,10 +119,18 @@ onMounted(async () => {
   if (productsStore.isPersonalized && productsStore.homeSections.length) {
     expertiseStore.logReuse(productsStore.homeSections.length, productsStore.isPersonalized);
   }
+}
+
+onMounted(() => {
+  stopWakingWatch = api.onWaking((waking) => {
+    serverWaking.value = waking;
+  });
+  return loadHomePage();
 });
 
 onUnmounted(() => {
   stopTimer();
+  stopWakingWatch?.();
   productsStore.closeStreaming();  // Cleanup WebSocket
 });
 </script>
@@ -126,7 +139,13 @@ onUnmounted(() => {
   <div class="home-page">
     <!-- Loading State with Timer (before first section arrives) -->
     <div v-if="productsStore.loading && !productsStore.homeSections.length" class="loading-container">
-      <LoadingSpinner message="Agent is building your personalized experience..." />
+      <LoadingSpinner
+        :message="
+          serverWaking
+            ? 'Waking up the server - free hosting sleeps when idle, this takes up to a minute...'
+            : 'Loading products...'
+        "
+      />
       <div class="loading-timer">
         <span class="timer-value">{{ formatDuration(elapsedTime) }}</span>
       </div>
@@ -172,7 +191,8 @@ onUnmounted(() => {
     </template>
 
     <div v-else-if="!productsStore.loading" class="empty-state">
-      <p>No products available. Please try again later.</p>
+      <p>Couldn't reach the store. The free-tier server may still be starting up.</p>
+      <button class="retry-button" @click="loadHomePage">Try again</button>
     </div>
   </div>
 </template>
@@ -320,5 +340,22 @@ onUnmounted(() => {
   text-align: center;
   padding: 4rem 2rem;
   color: #6b7280;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+  background: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.retry-button:hover {
+  background: #d97706;
 }
 </style>

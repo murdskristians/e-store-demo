@@ -1,5 +1,5 @@
 // API service for E-Store Demo
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import type {
   User,
   Product,
@@ -14,13 +14,32 @@ import type {
 // Use relative URL so Vite proxy handles routing to backend
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+/**
+ * The backend runs on a free instance that sleeps after ~15 minutes of
+ * inactivity. The first request after that either hangs while the container
+ * boots or is rejected outright by the platform edge, which used to leave the
+ * page stuck on "No products available" until a manual reload.
+ *
+ * Retry idempotent reads through the wake-up window instead. Delays are spread
+ * over roughly a minute, which covers an observed cold start.
+ */
+const RETRY_DELAYS_MS = [1000, 2000, 3000, 5000, 8000, 10000, 10000, 10000, 10000];
+const RETRYABLE_STATUS = [408, 425, 429, 500, 502, 503, 504];
+const REQUEST_TIMEOUT_MS = 90000;
+
+type RetryConfig = InternalAxiosRequestConfig & { _retryCount?: number };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 class ApiService {
   private client: AxiosInstance;
   private userId: number | null = null;
+  private wakingListeners = new Set<(waking: boolean) => void>();
 
   constructor() {
     this.client = axios.create({
       baseURL: `${API_BASE}/api`,
+      timeout: REQUEST_TIMEOUT_MS,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -33,6 +52,57 @@ class ApiService {
       }
       return config;
     });
+
+    this.client.interceptors.response.use(
+      (response) => {
+        this.setWaking(false);
+        return response;
+      },
+      (error: AxiosError) => this.retry(error)
+    );
+  }
+
+  /**
+   * Notifies when the client is sitting in a retry loop, so the UI can say the
+   * server is waking rather than showing an empty page.
+   */
+  onWaking(listener: (waking: boolean) => void): () => void {
+    this.wakingListeners.add(listener);
+    return () => {
+      this.wakingListeners.delete(listener);
+    };
+  }
+
+  private setWaking(waking: boolean) {
+    this.wakingListeners.forEach((listener) => listener(waking));
+  }
+
+  private async retry(error: AxiosError): Promise<unknown> {
+    const config = error.config as RetryConfig | undefined;
+
+    // Only replay reads - retrying a POST could duplicate a cart item or order.
+    const isIdempotent = (config?.method ?? 'get').toLowerCase() === 'get';
+    // No response at all means a network error or timeout, which is what a
+    // sleeping instance looks like from the browser.
+    const isRetryableFailure =
+      !error.response || RETRYABLE_STATUS.includes(error.response.status);
+
+    if (!config || !isIdempotent || !isRetryableFailure) {
+      this.setWaking(false);
+      return Promise.reject(error);
+    }
+
+    const attempt = config._retryCount ?? 0;
+    if (attempt >= RETRY_DELAYS_MS.length) {
+      this.setWaking(false);
+      return Promise.reject(error);
+    }
+
+    config._retryCount = attempt + 1;
+    this.setWaking(true);
+    await sleep(RETRY_DELAYS_MS[attempt] ?? 10000);
+
+    return this.client.request(config);
   }
 
   setUserId(id: number) {
