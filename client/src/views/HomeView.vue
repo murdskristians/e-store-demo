@@ -83,10 +83,21 @@ async function handleAddToCart(productId: number) {
 const serverWaking = ref<boolean>(false);
 let stopWakingWatch: (() => void) | null = null;
 
+/**
+ * The store's `loading` only flips to true once fetchHomePage() runs, which is
+ * after the expertise and cart calls have resolved. Without this flag the
+ * template falls through to the "no products" branch for that whole window -
+ * a brief flicker against a warm API, but 40+ seconds while a sleeping backend
+ * wakes, which reads as an empty store.
+ */
+const initializing = ref<boolean>(true);
+
 async function loadHomePage() {
+  initializing.value = true;
   // Start timer before fetching
   startTimer();
 
+  try {
   // Fetch expertise and cart in parallel
   await Promise.all([
     expertiseStore.fetchExpertise(),
@@ -112,12 +123,14 @@ async function loadHomePage() {
     await productsStore.fetchHomePage();
   }
 
-  // Stop timer after fetch completes
-  stopTimer();
-
   // Log the REUSE phase when home page is personalized by the agent
   if (productsStore.isPersonalized && productsStore.homeSections.length) {
     expertiseStore.logReuse(productsStore.homeSections.length, productsStore.isPersonalized);
+  }
+  } finally {
+    // Stop timer after fetch completes
+    stopTimer();
+    initializing.value = false;
   }
 }
 
@@ -138,7 +151,10 @@ onUnmounted(() => {
 <template>
   <div class="home-page">
     <!-- Loading State with Timer (before first section arrives) -->
-    <div v-if="productsStore.loading && !productsStore.homeSections.length" class="loading-container">
+    <div
+      v-if="(initializing || productsStore.loading) && !productsStore.homeSections.length"
+      class="loading-container"
+    >
       <LoadingSpinner
         :message="
           serverWaking
@@ -190,7 +206,7 @@ onUnmounted(() => {
       </div>
     </template>
 
-    <div v-else-if="!productsStore.loading" class="empty-state">
+    <div v-else-if="!initializing && !productsStore.loading" class="empty-state">
       <p>Couldn't reach the store. The free-tier server may still be starting up.</p>
       <button class="retry-button" @click="loadHomePage">Try again</button>
     </div>
